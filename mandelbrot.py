@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 def compute_escape_iterations(c: complex, max_iterations: int) -> int:
-    z = 0 + 0j
+    z = 0 + 0j #Initialization at 0
 
     for iteration in range(max_iterations):
         z = z * z + c
