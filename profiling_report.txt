@@ -1,0 +1,54 @@
+
+--- Profiling Naive (L1) ---
+Tue Mar  3 23:32:52 2026    naive.prof
+
+         5743705 function calls in 0.734 seconds
+
+   Ordered by: cumulative time
+   List reduced from 20 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.734    0.734 {built-in method builtins.exec}
+        1    0.000    0.000    0.734    0.734 <string>:1(<module>)
+        1    0.072    0.072    0.734    0.734 /Users/deian/Desktop/aau/second_semester/nsc-course/mandelbrot-nsc/mandelbrot_naive.py:40(generate_mandelbrot)
+   262144    0.518    0.000    0.662    0.000 /Users/deian/Desktop/aau/second_semester/nsc-course/mandelbrot-nsc/mandelbrot_naive.py:14(compute_escape_iterations)
+  5481530    0.144    0.000    0.144    0.000 {built-in method builtins.abs}
+        1    0.000    0.000    0.000    0.000 {built-in method numpy.zeros}
+        2    0.000    0.000    0.000    0.000 /Users/deian/miniforge3/envs/nsc2026/lib/python3.11/site-packages/numpy/_core/function_base.py:26(linspace)
+        2    0.000    0.000    0.000    0.000 {built-in method numpy.arange}
+        2    0.000    0.000    0.000    0.000 {method 'reshape' of 'numpy.ndarray' objects}
+        2    0.000    0.000    0.000    0.000 /Users/deian/miniforge3/envs/nsc2026/lib/python3.11/site-packages/numpy/_core/numeric.py:1964(isscalar)
+        2    0.000    0.000    0.000    0.000 /Users/deian/miniforge3/envs/nsc2026/lib/python3.11/site-packages/numpy/_core/fromnumeric.py:3523(ndim)
+        2    0.000    0.000    0.000    0.000 {method 'astype' of 'numpy.ndarray' objects}
+        2    0.000    0.000    0.000    0.000 {method 'result_type' of 'numpy._core._multiarray_umath._array_converter' objects}
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        2    0.000    0.000    0.000    0.000 {method 'wrap' of 'numpy._core._multiarray_umath._array_converter' objects}
+
+
+
+--- Profiling NumPy (L2) ---
+Tue Mar  3 23:32:52 2026    numpy.prof
+
+         80 function calls in 0.115 seconds
+
+   Ordered by: cumulative time
+   List reduced from 44 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.115    0.115 {built-in method builtins.exec}
+        1    0.000    0.000    0.115    0.115 <string>:1(<module>)
+        1    0.114    0.114    0.114    0.114 /Users/deian/Desktop/aau/second_semester/nsc-course/mandelbrot-nsc/mandelbrot_numpy.py:14(mandelbrot_numpy)
+        1    0.000    0.000    0.000    0.000 /Users/deian/miniforge3/envs/nsc2026/lib/python3.11/site-packages/numpy/lib/_function_base_impl.py:5134(meshgrid)
+        1    0.000    0.000    0.000    0.000 /Users/deian/miniforge3/envs/nsc2026/lib/python3.11/site-packages/numpy/_core/numeric.py:98(zeros_like)
+        3    0.000    0.000    0.000    0.000 /Users/deian/miniforge3/envs/nsc2026/lib/python3.11/site-packages/numpy/lib/_function_base_impl.py:5280(<genexpr>)
+        2    0.000    0.000    0.000    0.000 {method 'copy' of 'numpy.ndarray' objects}
+        2    0.000    0.000    0.000    0.000 {built-in method numpy.zeros}
+        2    0.000    0.000    0.000    0.000 /Users/deian/miniforge3/envs/nsc2026/lib/python3.11/site-packages/numpy/_core/function_base.py:26(linspace)
+        1    0.000    0.000    0.000    0.000 /Users/deian/miniforge3/envs/nsc2026/lib/python3.11/site-packages/numpy/lib/_stride_tricks_impl.py:481(broadcast_arrays)
+        1    0.000    0.000    0.000    0.000 /Users/deian/miniforge3/envs/nsc2026/lib/python3.11/site-packages/numpy/lib/_stride_tricks_impl.py:546(<listcomp>)
+        2    0.000    0.000    0.000    0.000 /Users/deian/miniforge3/envs/nsc2026/lib/python3.11/site-packages/numpy/lib/_stride_tricks_impl.py:340(_broadcast_to)
+        1    0.000    0.000    0.000    0.000 /Users/deian/miniforge3/envs/nsc2026/lib/python3.11/site-packages/numpy/_core/numeric.py:171(ones)
+        1    0.000    0.000    0.000    0.000 /Users/deian/miniforge3/envs/nsc2026/lib/python3.11/site-packages/numpy/lib/_function_base_impl.py:5267(<listcomp>)
+        4    0.000    0.000    0.000    0.000 {method 'reshape' of 'numpy.ndarray' objects}
+
+
