@@ -81,6 +81,7 @@ def main():
     # compute once more for plotting, this part is not timed
     image = compute()
 
+    #The plot code is AI generated
     plt.imshow(image, cmap="hot", extent=[xmin, xmax, ymin, ymax], origin="lower")
     plt.colorbar()
     plt.title(f"Mandelbrot (Naive) - {runtime:.3f}s")

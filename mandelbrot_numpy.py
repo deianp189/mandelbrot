@@ -1,75 +1,91 @@
+"""
+Mandelbrot Set Generator (Lecture 2)
+Author: Deian Orlando Petrovics
+Course: Numerical Scientific Computing
+
+Goal: get a big speedup using NumPy vectorization (remove pixel loops).
+"""
+
 import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-def generate_mandelbrot_vectorized(
-    xmin: float, xmax: float, ymin: float, ymax: float, 
-    width: int, height: int, max_iterations: int = 100
-) -> np.ndarray:
+
+def mandelbrot_numpy(xmin, xmax, ymin, ymax, width, height, max_iter=100):
     """
-    Versión optimizada de la Lecture 2 usando vectorización con NumPy.
-    Elimina los bucles por píxel para ganar velocidad.
+    Vectorized Mandelbrot (keep only the iteration loop).
+
+    Parameters
+    ----------
+    xmin, xmax, ymin, ymax : float
+        Complex plane bounds
+    width, height : int
+        Image resolution
+    max_iter : int
+        Max escape iterations
+
+    Returns
+    -------
+    np.ndarray
+        Escape iteration counts
     """
-    # 1. Crear la cuadrícula de números complejos (Meshgrid)
-    # En lugar de ir píxel a píxel, creamos toda la "hoja" de golpe
+
+    """Basically when we do it manually we do 1024x2014=1048576 calls, using a grid we do them
+    all at once, this will also allow to get rid of the for loop that iterates over them
+    """
     x = np.linspace(xmin, xmax, width)
     y = np.linspace(ymin, ymax, height)
     X, Y = np.meshgrid(x, y)
-    C = X + 1j * Y # Matriz completa de puntos complejos
+    C = X + 1j * Y
 
-    # 2. Inicializar variables de cálculo
     Z = np.zeros_like(C)
-    counts = np.full(C.shape, max_iterations, dtype=int)
-    mask = np.full(C.shape, True, dtype=bool) # Máscara para puntos activos
+    M = np.zeros(C.shape, dtype=np.int32)
 
-    # 3. Bucle de iteraciones (Solo 100 vueltas, no 1 millón de píxeles)
-    for i in range(max_iterations):
-        # Calculamos solo para los puntos que NO han escapado todavía
+    # Mask is for points that are still "active", basically points not escaped yet
+    mask = np.ones(C.shape, dtype=bool)
+
+    for i in range(max_iter):
         Z[mask] = Z[mask] * Z[mask] + C[mask]
-        
-        # Comprobar quién ha superado el límite de escape |z| > 2
-        escaped = np.abs(Z) > 2
-        
-        # Identificar quién acaba de escapar en esta vuelta exacta
-        newly_escaped = escaped & mask
-        
-        # Anotar la iteración de escape
-        counts[newly_escaped] = i
-        
-        # Actualizar la máscara: los que escaparon ya no se procesan
-        mask[escaped] = False
 
-    return counts
+        escaped_now = (np.abs(Z) > 2) & mask
+        M[escaped_now] = i
+        mask[escaped_now] = False
 
-def plot_comparison(image: np.ndarray, title: str, elapsed: float, filename: str):
-    plt.figure(figsize=(10, 8))
-    plt.imshow(image, cmap="magma", origin="lower")
-    plt.colorbar(label="Iteraciones de escape")
-    plt.title(f"{title} — Tiempo: {elapsed:.4f}s")
-    plt.savefig(filename)
-    plt.show()
+    # points that never escaped keep max_iter
+    M[mask] = max_iter
+    return M
+
+
+def benchmark_median(func, runs=3):
+    times = []
+    for _ in range(runs):
+        t0 = time.perf_counter()
+        func()
+        times.append(time.perf_counter() - t0)
+    return float(np.median(times))
+
 
 def main():
-    # Configuración de la sesión de estudio
-    xmin, xmax, ymin, ymax = -2.0, 1.0, -1.5, 1.5
+    xmin, xmax = -2.0, 1.0
+    ymin, ymax = -1.5, 1.5
     width, height = 1024, 1024
-    max_iterations = 100
+    max_iter = 100
 
-    print(f"Hardware detectado: Apple M4 (ARM64)")
-    print(f"Calculando Mandelbrot {width}x{height}...")
+    def compute():
+        return mandelbrot_numpy(xmin, xmax, ymin, ymax, width, height, max_iter)
 
-    # Ejecutar versión vectorizada (Lecture 2)
-    start = time.time()
-    image_vectorized = generate_mandelbrot_vectorized(
-        xmin, xmax, ymin, ymax, width, height, max_iterations
-    )
-    end = time.time()
-    
-    elapsed_vectorized = end - start
-    print(f"Versión Vectorizada (NumPy): {elapsed_vectorized:.4f} segundos")
+    t_med = benchmark_median(compute, runs=3)
+    print(f"NumPy Mandelbrot | {width}x{height} | max_iter={max_iter} | median = {t_med:.6f} s")
 
-    # Visualización
-    plot_comparison(image_vectorized, "Mandelbrot Vectorized (L2)", elapsed_vectorized, "mandelbrot_l2.png")
+    img = compute()  # not timed
+
+    #The plot code is AI generated
+    plt.imshow(img, cmap="magma", extent=[xmin, xmax, ymin, ymax], origin="lower")
+    plt.colorbar()
+    plt.title(f"Mandelbrot (NumPy L2) - {t_med:.3f}s")
+    plt.savefig("mandelbrot_l2.png")
+    plt.show()
+
 
 if __name__ == "__main__":
     main()
