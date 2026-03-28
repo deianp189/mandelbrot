@@ -31,10 +31,6 @@ milestone*_dtype.txt
 # =========================
 *.png
 
-# (optional)
-# If you want to keep figures for the report, comment this line
-# *.png
-
 # =========================
 # OS files
 # =========================
@@ -51,3 +47,10 @@ Thumbs.db
 # Jupyter checkpoints
 # =========================
 .ipynb_checkpoints/
+
+# =========================
+# Miniproject submissions
+# =========================
+MP1_DEIAN/
+MP1_DEIAN.zip
+git_log_deian.txt

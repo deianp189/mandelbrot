@@ -1,5 +1,5 @@
 """
-Milestone 1 - cProfile
+Milestone 3 - cProfile
 Author: Deian Orlando Petrovics
 Course: NSC
 
