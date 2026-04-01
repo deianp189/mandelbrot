@@ -97,3 +97,26 @@ if __name__ == '__main__':
     out = Path(__file__).parent / 'mandelbrot_parallel.png'
     fig.savefig(out, dpi=150)
     print(f'Saved: {out}')
+
+    # --- M2: chunk count sweep with LIF (from L05 slides) ---
+    n_workers = os.cpu_count() // 2  # adjust to your L04 optimum
+    tiny = [(0, 8, 8, X_MIN, X_MAX, Y_MIN, Y_MAX, max_iter)]
+
+    print(f"\nChunk sweep (n_workers={n_workers}, N={N})")
+    print(f"{'n_chunks':>10} | {'time (s)':>9} | {'speedup':>8} | {'LIF':>6}")
+    print("-" * 44)
+
+    for mult in [1, 2, 4, 8, 16]:
+        n_chunks = mult * n_workers
+        with Pool(processes=n_workers) as pool:
+            pool.map(_worker, tiny)  # warm-up: load JIT cache in workers
+            times = []
+            for _ in range(3):
+                t0 = time.perf_counter()
+                mandelbrot_parallel(N, X_MIN, X_MAX, Y_MIN, Y_MAX, max_iter,
+                                    n_workers=n_workers, n_chunks=n_chunks, pool=pool)
+                times.append(time.perf_counter() - t0)
+        t_par = statistics.median(times)
+        lif = n_workers * t_par / t_serial - 1
+        speedup = t_serial / t_par
+        print(f"{n_chunks:>10} | {t_par:>9.3f} | {speedup:>7.2f}x | {lif:>6.2f}")
