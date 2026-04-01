@@ -4,6 +4,8 @@ from multiprocessing import Pool
 import time, os, statistics
 import matplotlib.pyplot as plt
 from pathlib import Path
+from mandelbrot_naive import generate_mandelbrot
+from mandelbrot_numpy import mandelbrot_numpy
 
 
 # cache=True saves compiled code to __pycache__ so workers don't recompile on startup
@@ -98,7 +100,7 @@ if __name__ == '__main__':
     fig.savefig(out, dpi=150)
     print(f'Saved: {out}')
 
-    # --- M2: chunk count sweep with LIF (from L05 slides) ---
+    # hunk count sweep with LIF
     n_workers = os.cpu_count() // 2  # adjust to your L04 optimum
     tiny = [(0, 8, 8, X_MIN, X_MAX, Y_MIN, Y_MAX, max_iter)]
 
@@ -109,7 +111,7 @@ if __name__ == '__main__':
     for mult in [1, 2, 4, 8, 16]:
         n_chunks = mult * n_workers
         with Pool(processes=n_workers) as pool:
-            pool.map(_worker, tiny)  # warm-up: load JIT cache in workers
+            pool.map(_worker, tiny)  # warm-up
             times = []
             for _ in range(3):
                 t0 = time.perf_counter()
@@ -120,3 +122,57 @@ if __name__ == '__main__':
         lif = n_workers * t_par / t_serial - 1
         speedup = t_serial / t_par
         print(f"{n_chunks:>10} | {t_par:>9.3f} | {speedup:>7.2f}x | {lif:>6.2f}")
+
+    print(f"\nFull implementation comparison (N={N}, max_iter={max_iter})")
+    print(f"{'Implementation':>20} | {'time (s)':>9} | {'speedup':>8}")
+    print("-" * 46)
+
+    # naive: only 1 run because it takes more time
+    t0 = time.perf_counter()
+    generate_mandelbrot(X_MIN, X_MAX, Y_MIN, Y_MAX, N, N, max_iter)
+    t_naive = time.perf_counter() - t0
+    print(f"{'Naive Python':>20} | {t_naive:>9.3f} | {'1.00x':>8}")
+
+    # numpy with 3 runs
+    times = []
+    for _ in range(3):
+        t0 = time.perf_counter()
+        mandelbrot_numpy(X_MIN, X_MAX, Y_MIN, Y_MAX, N, N, max_iter)
+        times.append(time.perf_counter() - t0)
+    t_numpy = statistics.median(times)
+    print(f"{'NumPy':>20} | {t_numpy:>9.3f} | {t_naive/t_numpy:>7.2f}x")
+
+    # numba serial already have tserial from above
+    print(f"{'Numba':>20} | {t_serial:>9.3f} | {t_naive/t_serial:>7.2f}x")
+
+    # parallel with optimal settings from M2
+    with Pool(processes=n_workers) as pool:
+        pool.map(_worker, tiny)
+        times = []
+        for _ in range(3):
+            t0 = time.perf_counter()
+            mandelbrot_parallel(N, X_MIN, X_MAX, Y_MIN, Y_MAX, max_iter,
+                                n_workers=n_workers, n_chunks=2*n_workers, pool=pool)
+            times.append(time.perf_counter() - t0)
+    t_par = statistics.median(times)
+    print(f"{'Parallel (opt.)':>20} | {t_par:>9.3f} | {t_naive/t_par:>7.2f}x")
+
+    # worker count sweep with optimal chunk ratio
+    print(f"\nWorker sweep (n_chunks = 2 x n_workers, N={N})")
+    print(f"{'workers':>8} | {'time (s)':>9} | {'speedup':>8} | {'efficiency':>11}")
+    print("-" * 48)
+
+    for nw in range(1, os.cpu_count() + 1):
+        n_chunks = 2 * nw
+        with Pool(processes=nw) as pool:
+            pool.map(_worker, tiny)
+            times = []
+            for _ in range(3):
+                t0 = time.perf_counter()
+                mandelbrot_parallel(N, X_MIN, X_MAX, Y_MIN, Y_MAX, max_iter,
+                                    n_workers=nw, n_chunks=n_chunks, pool=pool)
+                times.append(time.perf_counter() - t0)
+        t_par = statistics.median(times)
+        speedup = t_serial / t_par
+        efficiency = speedup / nw * 100
+        print(f"{nw:>8} | {t_par:>9.3f} | {speedup:>7.2f}x | {efficiency:>10.0f}%")
