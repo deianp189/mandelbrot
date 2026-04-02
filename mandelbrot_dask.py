@@ -42,8 +42,6 @@ if __name__ == '__main__':
     client = Client(cluster)
     print(f"Dashboard: {client.dashboard_link}")
     client.run(lambda: mandelbrot_chunk(0, 8, 8, X_MIN, X_MAX, Y_MIN, Y_MAX, 10))
-
-    # --- M1 ---
     times = []
     for _ in range(3):
         t0 = time.perf_counter()
@@ -56,7 +54,6 @@ if __name__ == '__main__':
     assert np.array_equal(ref, result), "M1 correctness check failed"
     print("M1 correctness check passed")
 
-    # --- M2: chunk size sweep (from L06 slides) ---
     chunk_candidates = [4, 8, 10, 16, 20, 32, 40, 64]
 
     print(f"\nDask chunk sweep (n_workers={N_WORKERS}, N={N})")
@@ -78,7 +75,8 @@ if __name__ == '__main__':
         vs_1x = t_par / t_baseline
         print(f"{n_chunks:>10} | {t_par:>9.3f} | {vs_1x:>6.2f} | {speedup:>7.2f}x | {lif:>6.2f}")
 
-    # --- M3: full benchmark (from L06 slides) ---
+
+    #this part is from the slides and i also used ai to improve upon it since it was not working for some reason 
     from mandelbrot_naive import generate_mandelbrot
     from mandelbrot_numpy import mandelbrot_numpy
     from mandelbrot_parallel import mandelbrot_parallel, _worker
