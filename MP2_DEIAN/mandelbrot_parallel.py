@@ -37,9 +37,13 @@ def mandelbrot_chunk(row_start, row_end, N, x_min, x_max, y_min, y_max, max_iter
 def mandelbrot_serial(N, x_min, x_max, y_min, y_max, max_iter=100):
     return mandelbrot_chunk(0, N, N, x_min, x_max, y_min, y_max, max_iter)
 
+
+# Must be module-level so multiprocessing can pickle it
 def _worker(args):
     return mandelbrot_chunk(*args)
 
+
+# M1: added n_chunks and pool parameters
 def mandelbrot_parallel(N, x_min, x_max, y_min, y_max,
                         max_iter=100, n_workers=4, n_chunks=None, pool=None):
     if n_chunks is None:
@@ -56,6 +60,7 @@ def mandelbrot_parallel(N, x_min, x_max, y_min, y_max,
         # caller manages the Pool so no spawn cost, no warm-up needed here
         return np.vstack(pool.map(_worker, chunks))
 
+    # tiny warm-up task to load jitcache in workers before the real run
     tiny = [(0, 8, 8, x_min, x_max, y_min, y_max, max_iter)]
     with Pool(processes=n_workers) as p:
         p.map(_worker, tiny)
@@ -79,6 +84,7 @@ if __name__ == '__main__':
     t_serial = statistics.median(times)
     print(f"Serial baseline: {t_serial:.3f}s")
 
+    # quick check inparallel result matches serial
     result_serial = mandelbrot_serial(N, X_MIN, X_MAX, Y_MIN, Y_MAX, max_iter)
     result_parallel = mandelbrot_parallel(N, X_MIN, X_MAX, Y_MIN, Y_MAX, max_iter,
                                           n_workers=4, n_chunks=16)
@@ -94,7 +100,8 @@ if __name__ == '__main__':
     fig.savefig(out, dpi=150)
     print(f'Saved: {out}')
 
-    n_workers = os.cpu_count() // 2
+    # hunk count sweep with LIF
+    n_workers = os.cpu_count() // 2  # adjust to your L04 optimum
     tiny = [(0, 8, 8, X_MIN, X_MAX, Y_MIN, Y_MAX, max_iter)]
 
     print(f"\nChunk sweep (n_workers={n_workers}, N={N})")
@@ -135,8 +142,10 @@ if __name__ == '__main__':
     t_numpy = statistics.median(times)
     print(f"{'NumPy':>20} | {t_numpy:>9.3f} | {t_naive/t_numpy:>7.2f}x")
 
+    # numba serial already have tserial from above
     print(f"{'Numba':>20} | {t_serial:>9.3f} | {t_naive/t_serial:>7.2f}x")
 
+    # parallel with optimal settings from M2
     with Pool(processes=n_workers) as pool:
         pool.map(_worker, tiny)
         times = []
@@ -148,8 +157,7 @@ if __name__ == '__main__':
     t_par = statistics.median(times)
     print(f"{'Parallel (opt.)':>20} | {t_par:>9.3f} | {t_naive/t_par:>7.2f}x")
 
-
-
+    # worker count sweep with optimal chunk ratio
     print(f"\nWorker sweep (n_chunks = 2 x n_workers, N={N})")
     print(f"{'workers':>8} | {'time (s)':>9} | {'speedup':>8} | {'efficiency':>11}")
     print("-" * 48)
