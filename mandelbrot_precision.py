@@ -23,4 +23,5 @@ plt.imshow(diverge, cmap='plasma', origin='lower'
 extent=[-0.7530, -0.7490, 0.0990, 0.1030])
 plt.colorbar(label='First divergence iteration')
 plt.title(f'Trajectory divergence (tau={TAU})')
+plt.savefig('trajectory_divergence.png', dpi=150, bbox_inches='tight')
 plt.show()
